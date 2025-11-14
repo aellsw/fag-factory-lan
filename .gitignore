@@ -1,0 +1,10 @@
+# ComputerCraft log files
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# OS files
+.DS_Store
+Thumbs.db
