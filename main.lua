@@ -63,12 +63,13 @@ local function update_stats()
       stats.modules_offline = stats.modules_offline + 1
     end
     
-    -- Aggregate stress
-    if module_data.stress_units then
-      stats.total_stress = stats.total_stress + module_data.stress_units
+    -- Use max stress (all modules share same kinetic network)
+    -- Don't sum - that would count the same network multiple times!
+    if module_data.stress_units and module_data.stress_units > stats.total_stress then
+      stats.total_stress = module_data.stress_units
     end
-    if module_data.stress_capacity then
-      stats.total_capacity = stats.total_capacity + module_data.stress_capacity
+    if module_data.stress_capacity and module_data.stress_capacity > stats.total_capacity then
+      stats.total_capacity = module_data.stress_capacity
     end
     
     -- Count active/inactive
