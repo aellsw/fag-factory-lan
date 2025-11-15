@@ -199,7 +199,8 @@ function safety.create_monitor()
     last_overstress_check = 0,
     last_stale_check = 0,
     overstress_active = false,
-    disabled_by_safety = {}  -- Modules disabled by safety system
+    disabled_by_safety = {},  -- Modules disabled by safety system
+    modules_seen_online = {}  -- Track which modules have been online at least once
   }
   
   function monitor:check(modules, config)
@@ -242,6 +243,15 @@ function safety.create_monitor()
       self.last_overstress_check = current_time
     end
     
+    -- Track modules that are currently online
+    for module_id, module_data in pairs(modules) do
+      local age = current_time - (module_data.last_updated or 0)
+      if age < (config.module_timeout * 1000) then
+        -- Mark this module as having been seen online
+        self.modules_seen_online[module_id] = true
+      end
+    end
+    
     -- Check for stale modules (every 5 seconds)
     if current_time - self.last_stale_check > 5000 then
       local stale_modules = safety.check_stale_modules(
@@ -251,11 +261,14 @@ function safety.create_monitor()
       
       if #stale_modules > 0 and config.alert_on_module_offline then
         for _, stale in ipairs(stale_modules) do
-          table.insert(alerts, safety.create_module_offline_alert(
-            config.factory_id,
-            stale.module_id,
-            stale.age_seconds
-          ))
+          -- Only alert if this module was previously seen online
+          if self.modules_seen_online[stale.module_id] then
+            table.insert(alerts, safety.create_module_offline_alert(
+              config.factory_id,
+              stale.module_id,
+              stale.age_seconds
+            ))
+          end
         end
       end
       
