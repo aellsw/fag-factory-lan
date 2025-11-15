@@ -414,9 +414,7 @@ local function main()
   send_heartbeat()
   log("Startup complete")
   
-  -- Main loop timers
-  local heartbeat_timer = os.startTimer(30)
-  local display_timer = os.startTimer(1)
+  local last_heartbeat = os.epoch("utc")
   
   while state.running do
     -- Check if time to send snapshot
@@ -446,22 +444,18 @@ local function main()
       handle_message(msg, sender_id)
     end
     
-    -- Handle timers (check without blocking)
-    local event, param = os.pullEvent(0)
-    
-    if event == "timer" then
-      if param == heartbeat_timer then
-        send_heartbeat()
-        heartbeat_timer = os.startTimer(30)
-      elseif param == display_timer then
-        if config.display_mode ~= "none" then
-          display_status()
-        end
-        display_timer = os.startTimer(config.ui_refresh_rate)
-      end
+    -- Send heartbeat every 30 seconds
+    if (os.epoch("utc") - last_heartbeat) > 30000 then
+      send_heartbeat()
+      last_heartbeat = os.epoch("utc")
     end
     
-    sleep(0.05)
+    -- Update display periodically
+    if config.display_mode ~= "none" then
+      display_status()
+    end
+    
+    sleep(0.1)
   end
   
   log("Factory LAN shutting down")
