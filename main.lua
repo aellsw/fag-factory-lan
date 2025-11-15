@@ -390,6 +390,15 @@ local function main()
     log("FATAL: Failed to initialize network: " .. err)
     return
   end
+  
+  -- Ensure ALL modems are open (workaround for multi-modem setups)
+  for _, side in ipairs({"left", "right", "top", "bottom", "front", "back"}) do
+    if peripheral.getType(side) == "modem" and not rednet.isOpen(side) then
+      rednet.open(side)
+      log("Opened modem on " .. side)
+    end
+  end
+  
   log("Network initialized on " .. network.modem_side)
   
   -- Enable logging
