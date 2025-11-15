@@ -4,8 +4,8 @@
 -- Load dependencies
 local protocol = require("fag.protocol")
 local network = require("fag.network")
-local safety = require("factory_lan.safety")
-local config = require("factory_lan.config")
+local safety = require("safety")
+local config = require("config")
 
 -- Factory state
 local state = {
