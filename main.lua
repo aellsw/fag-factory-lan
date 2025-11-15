@@ -446,8 +446,8 @@ local function main()
       handle_message(msg, sender_id)
     end
     
-    -- Handle timers
-    local event, param = os.pullEvent()
+    -- Handle timers (check without blocking)
+    local event, param = os.pullEvent(0)
     
     if event == "timer" then
       if param == heartbeat_timer then
