@@ -406,6 +406,24 @@ local function main()
     network.enable_logging(config.log_file)
   end
   
+  -- Initialize expected modules as offline
+  if config.expected_modules then
+    for _, module_id in ipairs(config.expected_modules) do
+      state.modules[module_id] = {
+        module_id = module_id,
+        factory_id = config.factory_id,
+        rpm = 0,
+        stress_units = 0,
+        stress_capacity = 0,
+        items_per_min = 0,
+        enabled = false,
+        last_updated = 0,  -- Never updated = offline
+        sender_id = nil
+      }
+    end
+    log("Initialized " .. #config.expected_modules .. " expected modules")
+  end
+  
   -- Initialize safety monitor
   state.safety_monitor = safety.create_monitor()
   log("Safety monitor initialized")
