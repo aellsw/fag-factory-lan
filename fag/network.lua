@@ -9,30 +9,41 @@ local network = {}
 network.modem_side = nil
 network.is_initialized = false
 
--- Initialize the network (open rednet on modem)
+-- Initialize the network (open rednet on all modems)
 function network.init(modem_side)
   if network.is_initialized then
     return true
   end
   
-  -- Try to find a modem automatically if not specified
-  if not modem_side then
-    local sides = {"top", "bottom", "left", "right", "front", "back"}
-    for _, side in ipairs(sides) do
-      if peripheral.getType(side) == "modem" then
-        modem_side = side
-        break
-      end
+  local modems_found = {}
+  
+  -- If specific modem specified, use it
+  if modem_side then
+    if peripheral.getType(modem_side) == "modem" then
+      rednet.open(modem_side)
+      network.modem_side = modem_side
+      network.is_initialized = true
+      return true
+    else
+      return false, "No modem on side: " .. modem_side
     end
   end
   
-  if not modem_side then
+  -- Otherwise, find and open ALL modems
+  local sides = {"top", "bottom", "left", "right", "front", "back"}
+  for _, side in ipairs(sides) do
+    if peripheral.getType(side) == "modem" then
+      rednet.open(side)
+      table.insert(modems_found, side)
+    end
+  end
+  
+  if #modems_found == 0 then
     return false, "No modem found"
   end
   
-  -- Open rednet on the modem
-  rednet.open(modem_side)
-  network.modem_side = modem_side
+  -- Store first modem as primary (for display purposes)
+  network.modem_side = modems_found[1]
   network.is_initialized = true
   
   return true
